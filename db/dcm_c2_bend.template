@@ -1,0 +1,68 @@
+#   Virtual Motor for the DCM 2nd Crystal Bend
+#
+#   This virtual motor simply sets the same setpoint on both
+#   real motor and averages both real feedbacks to obtain
+#   a virtual readback.
+
+record(motor, "$(P)") {
+    field(DTYP, "Soft Channel")
+    field(DESC, "Mono C2 Bend")
+    field(URIP, "Yes")
+
+    # Where to write the setpoint to
+    field(OUT,  "$(P)-SP PP MS")
+
+    # Where to read the readback from
+    field(RDBL, "$(P)-I NPP MS")
+
+    # How to stop this motion
+    field(STOO, "$(P)-STOP PP MS")
+
+    # Where to get "done moving" status from
+    field(DINP, "$(P)-DMOV NPP MS")
+
+    # Dial Limits
+    field(DHLM, "1.10")
+    field(DLLM, "0")
+
+    # MRES here only determines the smallest
+    # allowed movement. Decrease/increase as
+    # appropriate.
+    field(MRES, "0.001")
+    field(RRES, "1.0")
+    field(PREC, "3")
+    field(EGU,  "mm")
+}
+
+# Calculate Readback
+record(calc, "$(P)-I") {
+    field(DESC, "C2 Bend Readback")
+    field(INPA, "$(C2BND1MTR).RBV CP MS")
+    field(INPB, "$(C2BND2MTR).RBV CP MS")
+    field(CALC, "(A+B)/2")
+    field(PREC, "3")
+    field(PINI, "YES")
+}
+
+# Distribute Setpoint
+record(dfanout, "$(P)-SP") {
+    field(DESC, "C2 Bend Setpoint")
+    field(OUTA, "$(C2BND1MTR).VAL PP MS")
+    field(OUTB, "$(C2BND2MTR).VAL PP MS")
+    field(PREC, "3")
+}
+
+# Stop both motions
+record(dfanout, "$(P)-STOP") {
+    field(DESC, "C2 Bend Stop")
+    field(OUTA, "$(C2BND1MTR).STOP PP MS")
+    field(OUTB, "$(C2BND2MTR).STOP PP MS")
+}
+
+# Done Moving
+record(calc, "$(P)-DMOV") {
+    field(DESC, "C2 Bend Done Moving")
+    field(INPA, "$(C2BND1MTR).DMOV CP MS")
+    field(INPB, "$(C2BND2MTR).DMOV CP MS")
+    field(CALC, "A&&B")
+}

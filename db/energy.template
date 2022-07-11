@@ -1,0 +1,152 @@
+#   Constants:
+#       [A] Asymmetric Cut  = 6
+#       [D] D-Spacing       = 3.13555
+#       [H] H (Beam Exit)   = 30
+#       [F] Energy Factor   = 12398.4244
+#
+#   Formulae:
+#       Energy (eV) = F / (2*D*sin(radians(Angle - A)))
+#       Angle (deg) = A + degrees(arcsin( F / (2*D*Energy) ))
+#
+#                 R = H / sin(radians(2*(Angle-A)))
+#         Perp (mm) = R*sin(radians(Angle-2*A))
+#         Para (mm) = R*cos(radians(Angle-2*A))
+#
+#   Real Motor limits:
+#       Angle (deg) =  0 --  40
+#         Perp (mm) =  3 --  20
+#         Para (mm) = 35 -- 125
+#
+#   Energy limits that fall within real motor limits:
+#       Energy (eV):    4406.000    15189.000
+#       Angle (deg):      32.662       13.479
+#         Perp (mm):      13.199        3.000   [Perp negative limit]
+#         Para (mm):      35.000      116.189   [Para negative limit]
+
+
+record(ai, "$(P)-AsymmCut") {
+    field(DESC, "Asymmetric Cut")
+    field(VAL,  "6")
+    field(PINI, "YES")
+    field(EGU,  "deg")
+    field(PREC, "3")
+}
+
+record(ai, "$(P)-DSpac") {
+    field(DESC, "D-Spacing")
+    field(VAL,  "3.13555")
+    field(PINI, "YES")
+    field(PREC, "6")
+}
+
+record(ai, "$(P)-BeamExit") {
+    field(DESC, "Beam Exit")
+    field(VAL,  "30")
+    field(PINI, "YES")
+    field(PREC, "3")
+}
+
+record(ai, "$(P)-EngyFact") {
+    field(DESC, "Energy Factor")
+    field(VAL,  "12398.4244")
+    field(PREC, "6")
+    field(PINI, "YES")
+}
+
+# Virtual Energy Motor
+record(motor, "$(P)") {
+    field(DTYP, "Soft Channel")
+    field(DESC, "Energy")
+    field(URIP, "Yes")
+
+    # Where to write the setpoint to
+    field(OUT,  "$(P)-SP.E PP MS")
+
+    # Where to read the readback from
+    field(RDBL, "$(P)-I.VAL NPP MS")
+
+    # How to stop this motion
+    field(STOO, "$(BRAGGMTR).STOP PP MS")
+
+    # Where to get "done moving" status from
+    field(DINP, "$(BRAGGMTR).DMOV NPP MS")
+
+    # Dial Limits
+    field(DHLM, "16000")
+    field(DLLM, "5400")
+
+    field(MRES, "1")
+    field(RRES, "1")
+    field(PREC, "1")
+    field(EGU,  "eV")
+}
+
+# Calculate Energy from Angle
+record(calc, "$(P)-I") {
+    field(DESC, "Energy Readback")
+    field(INPA, "$(P)-AsymmCut")
+    field(INPB, "$(BRAGGMTR).RBV CP MS")
+    field(INPD, "$(P)-DSpac")
+    field(INPF, "$(P)-EngyFact")
+
+    field(CALC, "F/(2*D*SIN(D2R*(B-A)))")
+    field(PREC, "1")
+    field(PINI, "YES")
+}
+
+# Calculate Angle from Energy
+record(calcout, "$(P)-SP") {
+    field(DESC, "Angle Setpoint")
+    field(INPA, "$(P)-AsymmCut")
+    field(INPD, "$(P)-DSpac")
+    field(INPF, "$(P)-EngyFact")
+
+    # E is Energy, written via $(P).OUT field
+    field(CALC, "A + R2D*ASIN(F/(2*D*E))")
+    field(PREC, "3")
+
+    field(OUT,  "$(BRAGGMTR).VAL PP MS")
+    field(FLNK, "$(P)-R PP")
+}
+
+# Calculate R
+record(calc, "$(P)-R") {
+    field(DESC, "R")
+    field(INPA, "$(P)-AsymmCut")
+    field(INPB, "$(P)-SP")
+    field(INPH, "$(P)-BeamExit")
+
+    field(CALC, "H/SIN(D2R*2*(B-A))")
+    field(PREC, "3")
+    field(FLNK, "$(P)-PerpSP")
+}
+
+# Calculate Perp Position
+record(calcout, "$(P)-PerpSP") {
+    field(DESC, "Perp Position")
+    field(INPA, "$(P)-AsymmCut")
+    field(INPB, "$(P)-SP")
+    field(INPC, "$(P)-R")
+
+    field(EGU,  "mm")
+
+    field(CALC, "C*SIN(D2R*(B-2*A))")
+    field(PREC, "3")
+    field(FLNK, "$(P)-ParaSP")
+    field(OUT,  "$(PERPMTR) PP")
+}
+
+# Calculate Para Position
+record(calcout, "$(P)-ParaSP") {
+    field(DESC, "Para Position")
+    field(INPA, "$(P)-AsymmCut")
+    field(INPB, "$(P)-SP")
+    field(INPC, "$(P)-R")
+
+    field(EGU,  "mm")
+
+    field(CALC, "C*COS(D2R*(B-2*A))")
+    field(PREC, "3")
+    field(OUT,  "$(PARAMTR) PP")
+}
+

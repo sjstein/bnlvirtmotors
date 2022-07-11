@@ -1,0 +1,57 @@
+#   Virtual Motor for the DCM Piezos
+
+# Conversion factor: urad per V
+record(ai, "$(P)-Factor") {
+# Change it back to voltage
+#    field(VAL,  "30")
+    field(VAL, "1")
+    field(PINI, "YES")
+    field(PREC, "3")
+}
+
+# Virtual Piezo Motor
+record(motor, "$(P)") {
+    field(DTYP, "Soft Channel")
+    field(DESC, "$(DESC)")
+    field(URIP, "Yes")
+
+    # Where to write the setpoint to
+    field(OUT,  "$(P)-SP.A PP MS")
+
+    # Where to read the readback from
+    field(RDBL, "$(P)-I.VAL NPP MS")
+
+    # Dial Limits
+    field(DHLM, "10")
+    field(DLLM, "0")
+
+    # MRES here only determines the smallest
+    # allowed movement. Decrease/increase as
+    # appropriate.
+    field(MRES, "0.001")
+    field(RRES, "1.0")
+    field(PREC, "3")
+    field(EGU,  "V")
+}
+
+# Calculate urad from V
+record(calc, "$(P)-I") {
+    field(DESC, "Piezo Readback")
+    field(INPA, "$(MTR).VAL CP MS")
+    field(INPC, "$(P)-Factor")
+    field(CALC, "A*C")
+    field(PREC, "3")
+    field(PINI, "YES")
+}
+
+# Calculate V from urad
+record(calcout, "$(P)-SP") {
+    field(DESC, "Piezo Setpoint")
+    field(INPC, "$(P)-Factor")
+    field(CALC, "A/C")
+    field(PREC, "3")
+
+    field(OUT,  "$(MTR) PP MS")
+}
+
+

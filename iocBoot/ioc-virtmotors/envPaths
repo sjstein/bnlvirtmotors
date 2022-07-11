@@ -1,0 +1,5 @@
+epicsEnvSet("IOC","ioc-virtmotors")
+epicsEnvSet("TOP","/epics/iocs/virtmotors")
+epicsEnvSet("MOTOR","/usr/lib/epics")
+epicsEnvSet("IOCSTATS","/usr/lib/epics")
+epicsEnvSet("EPICS_BASE","/usr/lib/epics")
