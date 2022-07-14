@@ -23,7 +23,7 @@
 # the CONFIG_SITE file.
 #
 MOTOR=/root/EPICS/synApps/support/motor-master
-IOCSTATS=/usr/lib/epics
+IOCSTATS=/root/EPICS/synApps/support/iocStats
 
 # If using the sequencer, point SNCSEQ at its top directory:
 #SNCSEQ = $(MODULES)/seq-ver
