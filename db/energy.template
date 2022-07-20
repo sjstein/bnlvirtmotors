@@ -105,7 +105,7 @@ record(calcout, "$(P)-SP") {
     field(CALC, "A + R2D*ASIN(F/(2*D*E))")
     field(PREC, "3")
 
-    field(OUT,  "$(BRAGGMTR).VAL PP MS")
+    field(OUT,  "$(BRAGGMTR).VAL CA MS")
     field(FLNK, "$(P)-R PP")
 }
 
