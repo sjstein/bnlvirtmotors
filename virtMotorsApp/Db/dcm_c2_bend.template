@@ -34,6 +34,42 @@ record(motor, "$(P)") {
     field(EGU,  "mm")
 }
 
+record(ai, "$(P)-CMOV") {
+    field(PINI, "NO")
+    field(DESC, "Move the center of the gap")
+    field(FLNK, "$(P)-combMov.PROC PP MS")
+}
+
+record(fanout, "$(P)-combMov") {
+    field(PINI, "NO")
+    field(LNK1, "$(P)-calcM1Diff.PROC CP MS")
+    field(LNK2, "$(P)-calcM2Diff.PROC CP MS")
+}
+
+record(calc, "$(P)-calcDiff"){
+    field(PINI, "NO")
+    field(INPA, "$(P).RBV PP MS")
+    field(INPB, "$(P)-CMOV.VAL PP MS")
+    field(CALC, "B-A")
+}
+
+record(calcout, "$(P)-calcM1Diff"){
+    field(PINI, "NO")
+    field(INPA, "$(C2BND1MTR).RBV CA MS")
+    field(INPB, "$(P)-calcDiff.VAL PP MS")
+    field(CALC, "A+B")
+    field(OUT, "$(C2BND1MTR).VAL CA MS")
+}
+
+record(calcout, "$(P)-calcM2Diff"){
+    field(PINI, "NO")
+    field(INPA, "$(C2BND2MTR).RBV CA MS")
+    field(INPB, "$(P)-calcDiff.VAL PP MS")
+    field(CALC, "A+B")
+    field(OUT, "$(C2BND2MTR).VAL CA MS")
+}
+
+
 # Calculate Readback
 record(calc, "$(P)-I") {
     field(DESC, "C2 Bend Readback")
@@ -47,16 +83,64 @@ record(calc, "$(P)-I") {
 # Distribute Setpoint
 record(dfanout, "$(P)-SP") {
     field(DESC, "C2 Bend Setpoint")
-    field(OUTA, "$(C2BND1MTR).VAL PP MS")
-    field(OUTB, "$(C2BND2MTR).VAL PP MS")
+    field(OUTA, "$(C2BND1MTR).VAL CA MS")
+    field(OUTB, "$(C2BND2MTR).VAL CA MS")
     field(PREC, "3")
+}
+
+# Tweak (pos) motor 1
+record(calcout, "$(C2BND1MTR)-TwkPos") {
+    field(PINI, "NO")
+    field(INPA, "$(C2BND1MTR).RBV CA MS")
+    field(INPB, "$(P).TWV CA MS")
+    field(CALC, "A+B")
+    field(OUT, "$(C2BND1MTR).VAL CA MS")
+}
+
+# Tweak (pos) motor 2
+record(calcout, "$(C2BND2MTR)-TwkPos") {
+    field(PINI, "NO")
+    field(INPA, "$(C2BND2MTR).RBV CA MS")
+    field(INPB, "$(P).TWV CA MS")
+    field(CALC, "A+B")
+    field(OUT, "$(C2BND2MTR).VAL CA MS")
+}
+
+# Tweak (neg) motor 1
+record(calcout, "$(C2BND1MTR)-TwkNeg") {
+    field(PINI, "NO")
+    field(INPA, "$(C2BND1MTR).RBV CA MS")
+    field(INPB, "$(P).TWV CA MS")
+    field(CALC, "A-B")
+    field(OUT, "$(C2BND1MTR).VAL CA MS")
+}
+
+# Tweak (neg) motor 2
+record(calcout, "$(C2BND2MTR)-TwkNeg") {
+    field(PINI, "NO")
+    field(INPA, "$(C2BND2MTR).RBV CA MS")
+    field(INPB, "$(P).TWV CA MS")
+    field(CALC, "A-B")
+    field(OUT, "$(C2BND2MTR).VAL CA MS")
+}
+
+# fire off tweak positive 
+record(fanout, "$(P)-TWKPOS") {
+    field(LNK1, "$(C2BND1MTR)-TwkPos.PROC CA MS")
+    field(LNK2, "$(C2BND2MTR)-TwkPos.PROC CA MS")
+}
+
+# fire off tweak negative 
+record(fanout, "$(P)-TWKNEG") {
+    field(LNK1, "$(C2BND1MTR)-TwkNeg.PROC CA MS")
+    field(LNK2, "$(C2BND2MTR)-TwkNeg.PROC CA MS")
 }
 
 # Stop both motions
 record(dfanout, "$(P)-STOP") {
     field(DESC, "C2 Bend Stop")
-    field(OUTA, "$(C2BND1MTR).STOP PP MS")
-    field(OUTB, "$(C2BND2MTR).STOP PP MS")
+    field(OUTA, "$(C2BND1MTR).STOP CA MS")
+    field(OUTB, "$(C2BND2MTR).STOP CA MS")
 }
 
 # Done Moving
